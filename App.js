@@ -108,11 +108,11 @@ export default function App() {
       MFNotificationOption.LINK,
       "customerName"
     );
-    sendPaymentRequest.customerEmail = "Test@test.com";
-    sendPaymentRequest.customerMobile = "123456789";
-    sendPaymentRequest.customerReference = "Test12345";
-    sendPaymentRequest.displayCurrencyIso = MFCurrencyISO.UNITEDSTATES_USD;
-    sendPaymentRequest.expiryDate = "2023-06-08T17:36:23.132Z";
+    sendPaymentRequest.CustomerEmail = "Test@test.com";
+    sendPaymentRequest.CustomerMobile = "123456789";
+    sendPaymentRequest.CustomerReference = "Test12345";
+    sendPaymentRequest.DisplayCurrencyIso = MFCurrencyISO.UNITEDSTATES_USD;
+    sendPaymentRequest.ExpiryDate = "2023-06-08T17:36:23.132Z";
 
     await MFSDK.sendPayment(sendPaymentRequest, MFLanguage.ARABIC)
       .then((success) => {
