@@ -2,6 +2,8 @@ import { StatusBar } from "expo-status-bar";
 import {
   Button,
   Image,
+  Linking,
+  processColor,
   ScrollView,
   StyleSheet,
   Text,
@@ -9,10 +11,20 @@ import {
   View,
 } from "react-native";
 import {
+  MFBoxShadow,
+  MFCardPaymentView,
+  MFCardViewError,
+  MFCardViewInput,
+  MFCardViewLabel,
+  MFCardViewPlaceHolder,
+  MFCardViewStyle,
+  MFCardViewText,
   MFCountry,
   MFCurrencyISO,
   MFEnvironment,
   MFExecutePaymentRequest,
+  MFFontFamily,
+  MFFontWeight,
   MFGetPaymentStatusRequest,
   MFInitiatePaymentRequest,
   MFKeyType,
@@ -20,7 +32,7 @@ import {
   MFSDK,
   MFSendPaymentRequest,
 } from "myfatoorah-reactnative";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 export default function App() {
   //Add the code in the App()
   const [PaymentMethods, setPaymentMethods] = useState([]);
@@ -103,7 +115,10 @@ export default function App() {
     sendPaymentRequest.expiryDate = "2023-06-08T17:36:23.132Z";
 
     await MFSDK.sendPayment(sendPaymentRequest, MFLanguage.ARABIC)
-      .then((success) => console.log(success))
+      .then((success) => {
+        Linking.openURL(success.InvoiceURL);
+        console.log(success);
+      })
       .catch((error) => console.log(error));
   };
 
@@ -117,6 +132,77 @@ export default function App() {
     await MFSDK.getPaymentStatus(getPaymentStatusRequest, MFLanguage.ARABIC)
       .then((success) => console.log(success))
       .catch((error) => console.log(error));
+  };
+
+  const cardPaymentView = useRef(null);
+
+  const paymentCardStyle = () => {
+    var cardViewInput = new MFCardViewInput(
+      processColor("gray"),
+      13,
+      MFFontFamily.SansSerif,
+      32,
+      0,
+      processColor("#c7c7c7"),
+      2,
+      8,
+      new MFBoxShadow(10, 10, 5, 0, processColor("gray")),
+      new MFCardViewPlaceHolder(
+        "Name On Card test",
+        "Number test",
+        "MM / YY",
+        "CVV test"
+      )
+    );
+
+    var cardViewLabel = new MFCardViewLabel(
+      true,
+      processColor("black"),
+      13,
+      MFFontFamily.CourierNew,
+      MFFontWeight.Bold,
+      new MFCardViewText(
+        "Card Holder Name test",
+        "Card Number test",
+        "Expiry Date test",
+        "Security Code test"
+      )
+    );
+
+    var cardViewError = new MFCardViewError(
+      processColor("green"),
+      8,
+      new MFBoxShadow(10, 10, 5, 0, processColor("yellow"))
+    );
+
+    var cardViewStyle = new MFCardViewStyle(
+      false,
+      "initial",
+      230,
+      cardViewInput,
+      cardViewLabel,
+      cardViewError
+    );
+
+    return cardViewStyle;
+  };
+  useEffect(() => {
+    if (cardPaymentView.current) {
+      console.log("Card Payment View is initialized");
+    }
+  }, []);
+
+  const pay = async () => {
+    if (cardPaymentView.current) {
+      try {
+        const result = await cardPaymentView.current.pay(); // Ensure .pay() is available
+        console.log("Payment successful:", result);
+      } catch (error) {
+        console.error("Payment failed:", error);
+      }
+    } else {
+      console.error("cardPaymentView is not available.");
+    }
   };
 
   return (
@@ -155,7 +241,33 @@ export default function App() {
           ))}
         </View>
       </View>
+      <View style={{ padding: 20 }}>
+        {/* Card Payment View */}
+        <MFCardPaymentView
+          ref={cardPaymentView}
+          paymentStyle={paymentCardStyle()}
+        />
+
+        {/* Pay Button */}
+        <View style={{ marginTop: 20, alignItems: "center" }}>
+          <TouchableOpacity
+            onPress={pay}
+            style={{
+              backgroundColor: "#007bff",
+              paddingVertical: 12,
+              paddingHorizontal: 24,
+              borderRadius: 8,
+            }}
+          >
+            <Text style={{ color: "white", fontSize: 16, fontWeight: "bold" }}>
+              Pay
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+      <Button title="pay" onPress={sendPayment} />
       <Button title="Invoice" onPress={getPaymentStatus} />
+
       <StatusBar style="auto" />
     </ScrollView>
   );
